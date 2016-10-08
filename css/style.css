@@ -1,0 +1,10 @@
+html,body,div,span,h1,h2,h3,h4,h5,h6,p,a,em,img,nav ul,nav li,article,aside,figure,figcaption,footer,header,nav,section{margin:0;padding:0;border:0;font-size:100%;font:inherit;vertical-align:baseline;}
+article, aside, figcaption, figure, footer, header, nav, section {display: block;}
+ul{  list-style:none;margin:0;padding:0;}
+.clear{clear:both;}
+img{max-width:100%;}
+body {
+    font-family: 'Montserrat', sans-serif;
+    background: #F7D9A3;
+    font-size: 100%;
+}
