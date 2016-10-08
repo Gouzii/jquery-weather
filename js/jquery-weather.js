@@ -7,21 +7,28 @@
             apiKey: "8783518d2aa42cd54c06da77c7839f65",
             draggable: true,
             css: {
+                '.weather': {
+                    'width': '200px',
+                    'margin': '10px auto',
+                    'background': '#fff',
+                    'font-family': "'Montserrat', Tahoma, sans-serif"
+                },
                 '.header-top': {
                     'border-bottom': '3px solid #D4D4D4',
-                    padding: '1.5em'
+                    'padding': '1.5em'
                 },
                 '.header-top .city': {
                     'font-size': '1.4em',
                     'border': 'none',
                     'border-bottom': '1px solid #8C8B8B',
-                    'width': '110px',
+                    'width': '110px'
                 },
                 '.header-top #temp-switch': {
                     'float': 'right',
                     'border': '1px solid #C1C1C1',
                     'border-radius': '5px',
                     'margin-top': '0.3em',
+                    'cursor': 'pointer'
                 },
                 '.header-top #temp-switch li': {
                     'display': 'inline-block'
@@ -29,7 +36,7 @@
                 '.header-top #temp-switch li p': {
                     'color':'#8C8B8B',
                     'font-size': '1em',
-                    'padding': '4px 6px',
+                    'padding': '4px 6px'
                 },
                 '.header-top #temp-switch li p.cen': {
                     'background': '#E4E4E4'
@@ -40,14 +47,15 @@
                 },
                 '.header-top #refresh': {
                     'width': '30px',
-                    float: 'right'
+                    'float': 'right',
+                    'cursor': 'pointer'
                 },
                 '.header-head': {
-                    padding: '2em',
+                    'padding': '2em',
                     'text-align': 'center'
                 },
                 '.header-head h4': {
-                    color:'#8C8B8B'
+                    'color':'#8C8B8B'
                 },
                 '.header-head h6': {
                     'font-size': '1.5em',
@@ -55,17 +63,38 @@
                     'margin-bottom': '1em'
                 },
                 '.header-head img': {
-                    display: 'block',
-                    margin: '1em auto'
+                    'display': 'block',
+                    'margin': '1em auto'
                 },
                 '.bottom-head p': {
-                    color:'#8C8B8B',
+                    'color':'#8C8B8B',
                     'line-height': '1.4em'
                 }
             }
         };
         var options = $.extend(defaults, options);
+        var data = {};
         var savedData = {};
+
+        // Check city on cityList (from openweathermap JSON)
+        // Not working atm
+        // var cityList = {};
+
+        // var getCity = function() {
+        //     $.ajax({
+        //         url: "js/city.list.us.json",
+        //         dataType: 'json'
+        //     })
+        //     .done(function (data) {
+        //         console.log('done');
+        //         cityList = data;
+        //     }).fail(function (error) {
+        //         console.log('error');
+        //         console.log(error);
+        //      });
+        // };
+
+
 
         var getData = function () {
             var apiUrl = "http://api.openweathermap.org/data/2.5/weather?q=" + options.city + "&appid=" + options.apiKey;
@@ -91,13 +120,13 @@
                 return true;
             }
         };
-
         var sortData = function (response) {
             var data = {
                 name: response.name,
                 weather: response.weather[0].main,
-                temp: calcTemps(response.main.temp)
+                tempK: response.main.temp
             };
+            data.temp = calcTemps(data.tempK);
             savedData = data;
             return data;
         };
@@ -111,7 +140,6 @@
                 return tempF;
             }
         };
-
         var switchTemp = function (target) {
             $(target).find('#temp-switch li p').each(function () {$(this).toggleClass('cen').removeAttr('style')});
             $(target).find('#temp-switch li p').css(options.css['.header-top #temp-switch li p']);
@@ -134,7 +162,7 @@
                     "July", "August", "September", "October", "November", "December"];
                 var dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
                 var month = time.getMonth();
-                var date = time.getDate()
+                var date = time.getDate();
                 var d = time.getDay();
 
                 return({day: dayNames[d] + " " + date, month: monthNames[month]});
@@ -163,7 +191,7 @@
             $(target).find('.month').html(date.month);
         };
 
-        function createHtml (target) {
+        var createHtml = function (target) {
             var html  = '   <div class="header-top">';
                 html += '       <img src="images/refresh.png" id="refresh">';
                 html += '       <input class="city"/>';
@@ -190,9 +218,10 @@
             $(target)
                 .html(html)
                 .addClass("weather")
-                .css({width: '200px', margin: '10px auto',background: '#fff'});
+                .css(options.css['.weather']);
             if (options.draggable) {
-                $(target).draggable();
+                $(target).draggable()
+                .css('cursor','move');
             }
             $(target).find("." + options.units).addClass("cen");
             $.each(options.css, function (id, prop) {
@@ -214,16 +243,16 @@
         return this.each(function(){
             var target = this;
 
-
+            // getCity();
             getData().then(function (response) {
                 if (checkErrors(response)) {
-                    var data = sortData(response);
+                    data = sortData(response);
                     createHtml(target);
                     insertData(target, data);
                     $(target).find('#refresh').click(refresh);
                     $(target).find('#temp-switch').click(function () {
                         switchTemp(target);
-                        data.temp = calcTemps(response.main.temp);
+                        data.temp = calcTemps(data.tempK);
                         insertData(target,data);
                     });
                     $(target).find('.city').keyup(function (e) {
@@ -238,24 +267,37 @@
             var refresh = function () {
                 getData().then(function (response) {
                     if (checkErrors(response)) {
-                        var data = sortData(response);
+                        data = sortData(response);
                         insertData(target, data);
                     }
                 })
-                    .catch(function (error) {
-                        console.log(error);
-                        insertData(target, savedData);
-                    });
+                .catch(function (error) {
+                    console.log(error);
+                    insertData(target, savedData);
+                });
             };
 
 
+            // Check city on cityList (from openweathermap JSON)
+            // Not working atm
+            // var checkCity = function (city) {
+            //     console.log('Checkcity');
+            //     $.each(cityList.name, function (key, val) {
+            //         console.log(val);
+            //         if (city == val) {
+            //             return true;
+            //         }
+            //     });
+            //
+            // };
+
             var checkInput = function (e, elem) {
+                var value = $(elem).val();
                 if(e.keyCode == 13) {
-                    options.city = $(elem).val();
+                    options.city = value;
                     refresh();
                 }
             };
-
         });
     };
 })(jQuery);
